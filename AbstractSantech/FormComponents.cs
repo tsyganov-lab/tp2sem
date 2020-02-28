@@ -1,4 +1,5 @@
-﻿using AbstractSantechBusinessLogic.Interfaces;
+﻿using AbstractSantechBusinessLogic.BindingModels;
+using AbstractSantechBusinessLogic.Interfaces;
 using System;
 using System.Windows.Forms;
 using Unity;
@@ -22,12 +23,12 @@ namespace AbstractSantech
         {
             try
             {
-                var list = logic.GetList();
+                var list = logic.Read(null);
                 if (list != null)
                 {
                     dataGridView.DataSource = list;
                     dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 }
             }
             catch (Exception ex)
@@ -36,7 +37,7 @@ namespace AbstractSantech
                MessageBoxIcon.Error);
             }
         }
-        private void buttonAdd_Click(object sender, EventArgs e)
+        private void ButtonAdd_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormComponent>();
             if (form.ShowDialog() == DialogResult.OK)
@@ -44,11 +45,19 @@ namespace AbstractSantech
                 LoadData();
             }
         }
-        private void buttonUpd_Click(object sender, EventArgs e)
+        private void ButtonUpd_Click(object sender, EventArgs e)
         {
-
+            if (dataGridView.SelectedRows.Count == 1)
+            {
+                var form = Container.Resolve<FormComponent>();
+                form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    LoadData();
+                }
+            }
         }
-        private void buttonDel_Click(object sender, EventArgs e)
+        private void ButtonDel_Click(object sender, EventArgs e)
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
@@ -59,7 +68,7 @@ namespace AbstractSantech
                    Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                     try
                     {
-                        logic.DelElement(id);
+                        logic.Delete(new ComponentBindingModel { Id = id });
                     }
                     catch (Exception ex)
                     {
@@ -70,7 +79,7 @@ namespace AbstractSantech
                 }
             }
         }
-        private void buttonRef_Click(object sender, EventArgs e)
+        private void ButtonRef_Click(object sender, EventArgs e)
         {
             LoadData();
         }

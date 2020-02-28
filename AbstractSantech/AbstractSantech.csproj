@@ -47,11 +47,11 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Unity.Abstractions, Version=5.11.3.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>packages\Unity.5.11.3\lib\net47\Unity.Abstractions.dll</HintPath>
+    <Reference Include="Unity.Abstractions, Version=5.11.4.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
+      <HintPath>packages\Unity.5.11.4\lib\net47\Unity.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Container, Version=5.11.5.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>packages\Unity.5.11.3\lib\net47\Unity.Container.dll</HintPath>
+      <HintPath>packages\Unity.5.11.4\lib\net47\Unity.Container.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +147,10 @@
     <ProjectReference Include="..\AbstractSantechBusinessLogic\AbstractSantechBusinessLogic.csproj">
       <Project>{2eb63b68-f000-4bea-ad15-d9cfeee9fea2}</Project>
       <Name>AbstractSantechBusinessLogic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AbstractSantechListImplement\AbstractSantechListImplement.csproj">
+      <Project>{081d1910-553d-4596-9627-82960527db1d}</Project>
+      <Name>AbstractSantechListImplement</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

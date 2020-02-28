@@ -14,7 +14,7 @@ namespace AbstractSantech
         public int Id { set { id = value; } }
         private readonly IProductLogic logic;
         private int? id;
-        private List<ProductComponentViewModel> productComponents;
+        private Dictionary<int, (string, int)> productComponents;
         public FormProduct(IProductLogic service)
         {
             InitializeComponent();
@@ -26,7 +26,11 @@ namespace AbstractSantech
             {
                 try
                 {
-                    ProductViewModel view = logic.GetElement(id.Value);
+                    ProductViewModel view = logic.Read(new ProductBindingModel
+                    {
+                        Id =
+                   id.Value
+                    })?[0];
                     if (view != null)
                     {
                         textBoxName.Text = view.ProductName;
@@ -43,7 +47,7 @@ namespace AbstractSantech
             }
             else
             {
-                productComponents = new List<ProductComponentViewModel>();
+                productComponents = new Dictionary<int, (string, int)>();
             }
         }
         private void LoadData()
@@ -52,53 +56,51 @@ namespace AbstractSantech
             {
                 if (productComponents != null)
                 {
-                    dataGridView.DataSource = null;
-                    dataGridView.DataSource = productComponents;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].Visible = false;
-                    dataGridView.Columns[2].Visible = false;
-                    dataGridView.Columns[3].AutoSizeMode =
-                   DataGridViewAutoSizeColumnMode.Fill;
+                    dataGridView.Rows.Clear();
+                    foreach (var pc in productComponents)
+                    {
+                        dataGridView.Rows.Add(new object[] { pc.Key, pc.Value.Item1, pc.Value.Item2 });
+                    }
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK,
-               MessageBoxIcon.Error);
+                    MessageBoxIcon.Error);
             }
         }
-        private void buttonAdd_Click(object sender, EventArgs e)
+        private void ButtonAdd_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormProductComponent>();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                if (form.ModelView != null)
+                if (productComponents.ContainsKey(form.Id))
                 {
-                    if (id.HasValue)
-                    {
-                        form.ModelView.ProductId = id.Value;
-                    }
-                    productComponents.Add(form.ModelView);
+                    productComponents[form.Id] = (form.ComponentName, form.Count);
+                }
+                else
+                {
+                    productComponents.Add(form.Id, (form.ComponentName, form.Count));
                 }
                 LoadData();
             }
         }
-        private void buttonUpd_Click(object sender, EventArgs e)
+        private void ButtonUpd_Click(object sender, EventArgs e)
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
                 var form = Container.Resolve<FormProductComponent>();
-                form.ModelView =
-               productComponents[dataGridView.SelectedRows[0].Cells[0].RowIndex];
+                int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
+                form.Id = id;
+                form.Count = productComponents[id].Item2;
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    productComponents[dataGridView.SelectedRows[0].Cells[0].RowIndex] =
-                   form.ModelView;
+                    productComponents[form.Id] = (form.ComponentName, form.Count);
                     LoadData();
                 }
             }
         }
-        private void buttonDel_Click(object sender, EventArgs e)
+        private void ButtonDel_Click(object sender, EventArgs e)
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
@@ -108,7 +110,7 @@ namespace AbstractSantech
                     try
                     {
 
-                        productComponents.RemoveAt(dataGridView.SelectedRows[0].Cells[0].RowIndex);
+                        productComponents.Remove(Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value));
                     }
                     catch (Exception ex)
                     {
@@ -119,11 +121,11 @@ namespace AbstractSantech
                 }
             }
         }
-        private void buttonRef_Click(object sender, EventArgs e)
+        private void ButtonRef_Click(object sender, EventArgs e)
         {
             LoadData();
         }
-        private void buttonSave_Click(object sender, EventArgs e)
+        private void ButtonSave_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(textBoxName.Text))
             {
@@ -145,37 +147,13 @@ namespace AbstractSantech
             }
             try
             {
-                List<ProductComponentBindingModel> productComponentBM = new
-               List<ProductComponentBindingModel>();
-                for (int i = 0; i < productComponents.Count; ++i)
+                logic.CreateOrUpdate(new ProductBindingModel
                 {
-                    productComponentBM.Add(new ProductComponentBindingModel
-                    {
-                        Id = productComponents[i].Id,
-                        ProductId = productComponents[i].ProductId,
-                        ComponentId = productComponents[i].ComponentId,
-                        Count = productComponents[i].Count
-                    });
-                }
-                if (id.HasValue)
-                {
-                    logic.UpdElement(new ProductBindingModel
-                    {
-                        Id = id.Value,
-                        ProductName = textBoxName.Text,
-                        Price = Convert.ToDecimal(textBoxPrice.Text),
-                        ProductComponents = productComponentBM
-                    });
-                }
-                else
-                {
-                    logic.AddElement(new ProductBindingModel
-                    {
-                        ProductName = textBoxName.Text,
-                        Price = Convert.ToDecimal(textBoxPrice.Text),
-                        ProductComponents = productComponentBM
-                    });
-                }
+                    Id = id,
+                    ProductName = textBoxName.Text,
+                    Price = Convert.ToDecimal(textBoxPrice.Text),
+                    ProductComponents = productComponents
+                });
                 MessageBox.Show("Сохранение прошло успешно", "Сообщение",
                MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
@@ -187,11 +165,10 @@ namespace AbstractSantech
                MessageBoxIcon.Error);
             }
         }
-        private void buttonCancel_Click(object sender, EventArgs e)
+        private void ButtonCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
-
     }
 }
